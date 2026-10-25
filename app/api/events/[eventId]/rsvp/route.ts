@@ -1,6 +1,7 @@
 import { and, eq, ne, type SQL } from "drizzle-orm";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
+import { trackServerEvent } from "@/lib/analytics";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { events, rsvps, rsvpTimeline, user } from "@/lib/db/schema";
@@ -72,6 +73,7 @@ export async function POST(
   const result = await submitRsvp(eventId, session.user, {
     customAnswers: body.customAnswers,
     message: body.message,
+    source: body.source,
   });
 
   if (!result.ok) {
@@ -146,6 +148,18 @@ export async function PATCH(
   }
 
   const updated = outcome.rsvp;
+  if (updated?.status === "approved" && updated.paymentStatus === "paid") {
+    trackServerEvent(
+      "payment_confirmed",
+      {
+        event: event.slug,
+        price: updated.priceCents ? updated.priceCents / 100 : undefined,
+        source: updated.sourceName,
+        tier: updated.priceTier,
+      },
+      `/e/${event.slug}`
+    );
+  }
   if (updated) {
     // Log timeline entry
     db.insert(rsvpTimeline)

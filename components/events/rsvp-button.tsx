@@ -4,6 +4,7 @@ import { Check, Clock, LogIn, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { readCampaignSource } from "@/components/analytics";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -244,7 +245,7 @@ export function RsvpButton({
     setLoading(true);
     try {
       const res = await fetch(`/api/events/${eventId}/rsvp`, {
-        body: JSON.stringify({ customAnswers }),
+        body: JSON.stringify({ customAnswers, source: readCampaignSource() }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });

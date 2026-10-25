@@ -1,5 +1,6 @@
 import { and, asc, eq, inArray, ne, type SQL } from "drizzle-orm";
 import { z } from "zod/v4";
+import { trackServerEvent } from "@/lib/analytics";
 import { db } from "@/lib/db";
 import {
   type eventQuestions,
@@ -38,6 +39,21 @@ type Question = Pick<
 
 const MAX_ANSWER_LENGTH = 2000;
 const messageInput = z.string().trim().max(500).optional();
+const sourceText = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .optional()
+  .catch(undefined);
+const sourceInput = z
+  .object({
+    utm_campaign: sourceText,
+    utm_medium: sourceText,
+    utm_source: sourceText,
+  })
+  .optional()
+  .catch(undefined);
 
 /**
  * Locks the event row for the rest of the transaction. Every change that takes
@@ -212,7 +228,7 @@ export function parseAnswers(
 export async function submitRsvp(
   eventId: string,
   rsvpUser: RsvpUser,
-  input: { customAnswers?: unknown; message?: unknown } = {}
+  input: { customAnswers?: unknown; message?: unknown; source?: unknown } = {}
 ): Promise<RsvpResult> {
   const event = await db.query.events.findFirst({
     columns: {
@@ -269,6 +285,7 @@ export async function submitRsvp(
     };
   }
 
+  const source = sourceInput.parse(input.source);
   const message = messageInput.safeParse(input.message);
   if (!message.success) {
     return {
@@ -320,6 +337,9 @@ export async function submitRsvp(
         customAnswers: event.questions.length > 0 ? answers : null,
         eventId,
         message: message.data || null,
+        sourceCampaign: source?.utm_campaign ?? null,
+        sourceMedium: source?.utm_medium ?? null,
+        sourceName: source?.utm_source ?? null,
         status,
         userId: rsvpUser.id,
         ...(status === "pending" ? await newBooking(tx, eventId, locked) : {}),
@@ -347,6 +367,18 @@ export async function submitRsvp(
   }
 
   const { rsvp } = outcome;
+  trackServerEvent(
+    rsvp.status === "pending" && rsvp.priceCents
+      ? "seat_reserved"
+      : `rsvp_${rsvp.status}`,
+    {
+      event: event.slug,
+      price: rsvp.priceCents ? rsvp.priceCents / 100 : undefined,
+      source: rsvp.sourceName,
+      tier: rsvp.priceTier,
+    },
+    `/e/${event.slug}`
+  );
   db.insert(rsvpTimeline)
     .values({
       eventId,

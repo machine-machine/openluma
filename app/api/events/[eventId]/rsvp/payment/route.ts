@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
+import { trackServerEvent } from "@/lib/analytics";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { events, rsvps, rsvpTimeline, user } from "@/lib/db/schema";
@@ -48,6 +49,12 @@ export async function POST(
       { status: 409 }
     );
   }
+
+  trackServerEvent("payment_reported", {
+    price: updated.priceCents ? updated.priceCents / 100 : undefined,
+    source: updated.sourceName,
+    tier: updated.priceTier,
+  });
 
   db.insert(rsvpTimeline)
     .values({

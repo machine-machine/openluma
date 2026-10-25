@@ -10,6 +10,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { extractRouterConfig } from "uploadthing/server";
+import { Analytics } from "@/components/analytics";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -117,6 +118,7 @@ export default function RootLayout({
             <TooltipProvider>
               {children}
               <Toaster />
+              <Analytics />
             </TooltipProvider>
           </QueryProvider>
         </ThemeProvider>

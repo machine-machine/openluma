@@ -222,6 +222,10 @@ export const rsvps = pgTable(
     paymentStatus: paymentStatusEnum("payment_status"),
     priceCents: integer("price_cents"),
     priceTier: text("price_tier").$type<"early_bird" | "regular">(),
+    // Campaign the guest arrived with (utm_* of their landing link).
+    sourceCampaign: text("source_campaign"),
+    sourceMedium: text("source_medium"),
+    sourceName: text("source_name"),
     status: rsvpStatusEnum("status").notNull().default("pending"),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     userId: text("user_id")

@@ -62,6 +62,7 @@ interface Attendee {
   paymentStatus?: "unpaid" | "reported" | "paid" | null;
   priceCents?: number | null;
   priceTier?: "early_bird" | "regular" | null;
+  sourceName?: string | null;
   status: "pending" | "approved" | "rejected" | "waitlisted";
   timeline: TimelineEntry[];
   user: {

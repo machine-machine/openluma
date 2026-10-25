@@ -11,11 +11,11 @@ const cspDirectives = [
   // 'unsafe-inline' is required for Next.js's inline bootstrap. 'unsafe-eval'
   // is only needed in dev (React uses eval for debug stack reconstruction);
   // production omits it. Tighten with nonces in a later pass if needed.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://stats.grait.io${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://utfs.io https://*.ufs.sh https://*.uploadthing.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.uploadthing.com https://*.ufs.sh https://*.upstash.io https://accounts.google.com",
+  "connect-src 'self' https://stats.grait.io https://*.uploadthing.com https://*.ufs.sh https://*.upstash.io https://accounts.google.com",
   "frame-src 'self' https://accounts.google.com",
   "object-src 'none'",
   "base-uri 'self'",
