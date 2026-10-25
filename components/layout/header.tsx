@@ -12,15 +12,15 @@ import { cn } from "@/lib/utils";
 export const navLinks = [
   {
     href: "/events",
-    label: "Browse Events",
+    label: "Browse workshops",
   },
   {
-    href: "#features",
-    label: "Features",
+    href: "https://grait.io/ai-assessment/",
+    label: "AI Compass",
   },
   {
-    href: "#about",
-    label: "About",
+    href: "https://grait.io",
+    label: "About grAIt",
   },
 ];
 
