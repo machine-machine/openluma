@@ -81,7 +81,14 @@ export function EmailLayout({ preview, title, children }: EmailLayoutProps) {
                 . Questions? Reply to this email or write to hi@grait.io.
               </Text>
               <Text className="m-0 mt-[6px] text-[#a1a1aa] text-[12px] leading-[18px]">
-                © {new Date().getFullYear()} Mariusz Kreft · grAIt
+                Mariusz Kreft · grAIt · Al. Płk. W. Beliny-Prażmowskiego 14,
+                31-514 Kraków, Poland ·{" "}
+                <Link
+                  className="text-[#a1a1aa] underline"
+                  href="https://grait.io/imprint/"
+                >
+                  Imprint
+                </Link>
               </Text>
             </Section>
           </Container>

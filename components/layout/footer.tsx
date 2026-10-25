@@ -80,6 +80,10 @@ export function Footer() {
             <a className="hover:underline" href="https://grait.io/terms/">
               Terms
             </a>
+            {" · "}
+            <a className="hover:underline" href="https://grait.io/imprint/">
+              Imprint
+            </a>
           </p>
         </div>
       </div>
