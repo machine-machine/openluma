@@ -129,8 +129,8 @@ export default function SignUpPage() {
               className="text-base text-muted-foreground"
               font="circle"
               pixelWordClassName="text-foreground"
-              pixelWords={["OpenLuma"]}
-              text="Create your OpenLuma account to get started."
+              pixelWords={["BookGrait"]}
+              text="Create your BookGrait account to book a workshop."
             />
           </div>
           {verificationSentTo ? (

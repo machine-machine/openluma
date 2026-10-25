@@ -37,7 +37,7 @@ export function CalendarExportButton({
     const ics = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//OpenLuma//Event//EN",
+      "PRODID:-//BookGrait//Event//EN",
       "BEGIN:VEVENT",
       `DTSTART:${formatICSDate(start)}`,
       `DTEND:${formatICSDate(end)}`,

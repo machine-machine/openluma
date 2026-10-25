@@ -123,7 +123,7 @@ export function renderFallbackOgImage(): ImageResponse {
       }}
     >
       <div style={{ color: "#fff", fontSize: 48, fontWeight: 700 }}>
-        OpenLuma
+        BookGrait
       </div>
       <div style={{ color: "#888", fontSize: 24, marginTop: 16 }}>
         Open-source event management
@@ -236,7 +236,7 @@ export async function renderEventOgImage(slug: string): Promise<ImageResponse> {
               letterSpacing: -0.5,
             }}
           >
-            OpenLuma
+            BookGrait
           </span>
         </div>
 

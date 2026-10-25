@@ -7,7 +7,7 @@ import {
 export const runtime = "nodejs";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
-export const alt = "Event on OpenLuma";
+export const alt = "Event on BookGrait";
 
 export default async function Image({
   params,

@@ -352,7 +352,7 @@ export function createEventWriteTools(userId: string) {
 export function createEventAgent(userId: string) {
   return new ToolLoopAgent({
     id: "event-agent",
-    instructions: `You are the Event Lookup Agent for OpenLuma.
+    instructions: `You are the Event Lookup Agent for BookGrait.
 You look up information: searching events, listing the user's events, viewing event details, and viewing attendees.
 You cannot change anything. Creating, editing, duplicating, deleting events, RSVPing and sending invitations are handled by the orchestrator with the user's approval — do NOT attempt those.
 

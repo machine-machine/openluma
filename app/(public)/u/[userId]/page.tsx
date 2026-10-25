@@ -28,7 +28,7 @@ export async function generateMetadata({
   }
 
   const description =
-    profile.bio ?? `Events hosted by ${profile.name} on OpenLuma.`;
+    profile.bio ?? `Events hosted by ${profile.name} on BookGrait.`;
 
   // Avatars are square, so they get the small card; profiles without one fall
   // back to the branded 1200×630 site card rather than shipping no image.

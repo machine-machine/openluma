@@ -33,26 +33,24 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
 });
 
-const SITE_NAME = "OpenLuma";
-const SITE_TITLE = "OpenLuma | Open Source Event Platform";
+const SITE_NAME = "BookGrait";
+const SITE_TITLE = "BookGrait | Workshops & sessions by grAIt";
 const SITE_DESCRIPTION =
-  "Create, manage, and discover events. Open source alternative to Luma with AI-powered event management, RSVPs, invitations, and check-in.";
+  "Book hands-on AI workshops and sessions by grAIt with Mariusz Kreft. Pick a date, reserve your seat, pay by PayPal or Revolut.";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   applicationName: SITE_NAME,
-  authors: [{ name: "Nishit Bariya", url: "https://github.com/Nishitbaria" }],
+  authors: [{ name: "Mariusz Kreft", url: "https://grait.io" }],
   creator: SITE_NAME,
   description: SITE_DESCRIPTION,
   keywords: [
-    "event management",
-    "event platform",
-    "open source",
-    "luma alternative",
-    "event RSVP",
-    "event invitations",
-    "event check-in",
-    "AI event creation",
+    "AI workshop",
+    "AI training",
+    "AI agents",
+    "Ibiza workshop",
+    "grAIt",
+    "Mariusz Kreft",
   ],
   manifest: "/manifest.webmanifest",
   metadataBase: new URL(getAppUrl()),

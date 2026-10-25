@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 // See sign-in/layout.tsx — the surrounding auth layout is a client component.
 export const metadata: Metadata = {
-  description: "Create an OpenLuma account and start hosting events.",
+  description: "Create a BookGrait account to book grAIt workshops.",
   robots: { follow: false, index: false },
   title: "Sign up",
 };

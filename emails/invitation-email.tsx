@@ -32,14 +32,14 @@ export default function InvitationEmail({
             <>
               You've been invited to co-host{" "}
               <strong className="text-[#18181b]">{eventTitle}</strong> on
-              OpenLuma. As a co-host, you'll be able to manage attendees and
+              BookGrait. As a co-host, you'll be able to manage attendees and
               event details.
             </>
           ) : (
             <>
               You've been invited to{" "}
               <strong className="text-[#18181b]">{eventTitle}</strong> on
-              OpenLuma. Let the host know if you can make it.
+              BookGrait. Let the host know if you can make it.
             </>
           )}
         </Text>
@@ -60,7 +60,7 @@ export default function InvitationEmail({
         </Section>
 
         <Text className="m-0 mt-[24px] text-[#71717a] text-[13px] leading-[20px]">
-          If you don't have an OpenLuma account, one will be created for you
+          If you don't have an BookGrait account, one will be created for you
           when you accept.
         </Text>
       </Section>
@@ -69,8 +69,8 @@ export default function InvitationEmail({
 }
 
 InvitationEmail.PreviewProps = {
-  acceptUrl: "https://openluma.vercel.app/api/invitations/abc?action=accept",
-  declineUrl: "https://openluma.vercel.app/api/invitations/abc?action=decline",
+  acceptUrl: "https://book.grait.io/api/invitations/abc?action=accept",
+  declineUrl: "https://book.grait.io/api/invitations/abc?action=decline",
   eventTitle: "Summer Product Launch",
   role: "attendee",
 } satisfies InvitationEmailProps;

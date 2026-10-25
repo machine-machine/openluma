@@ -18,7 +18,7 @@ export function createOrchestrator(userId: string) {
 
   return new ToolLoopAgent({
     id: "orchestrator",
-    instructions: `You are the OpenLuma AI Assistant — an intelligent orchestrator that delegates tasks to specialized sub-agents.
+    instructions: `You are the BookGrait AI Assistant — an intelligent orchestrator that delegates tasks to specialized sub-agents.
 
 ## Your Role
 You understand the user's intent and route requests to the right agent. You do NOT perform tasks directly — you delegate to agents.

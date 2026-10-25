@@ -227,9 +227,9 @@ RsvpStatusEmail.PreviewProps = {
     timezone: "America/Los_Angeles",
   },
   eventTitle: "Summer Product Launch",
-  eventUrl: "https://openluma.vercel.app/e/summer-launch",
+  eventUrl: "https://book.grait.io/e/summer-launch",
   status: "approved",
-  ticketUrl: "https://openluma.vercel.app/ticket/evt_123",
+  ticketUrl: "https://book.grait.io/ticket/evt_123",
 } satisfies RsvpStatusEmailProps;
 
 export { RsvpStatusEmail };

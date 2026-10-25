@@ -1,32 +1,23 @@
 import Link from "next/link";
-import { GitHubIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
 
 const footerLinks = {
-  legal: [
-    { href: "#", label: "Privacy Policy" },
-    { href: "#", label: "Terms of Service" },
-    { href: "#", label: "Cookie Policy" },
+  grait: [
+    { href: "https://grait.io", label: "grait.io" },
+    { href: "https://grait.io/ibiza/", label: "Ibiza workshop" },
+    { href: "https://grait.io/ai-assessment/", label: "AI Readiness Compass" },
   ],
-  product: [
-    { href: "/events", label: "Browse Events" },
-    { href: "/sign-up", label: "Create Event" },
-    { href: "/sign-up", label: "AI Assistant" },
-    { href: "#", label: "Pricing" },
-  ],
-  resources: [
-    { href: "https://github.com/Nishitbaria/openluma", label: "Documentation" },
-    { href: "#", label: "API Reference" },
-    { href: "#", label: "Changelog" },
-    { href: "https://github.com/Nishitbaria/openluma", label: "Contributing" },
+  workshops: [
+    { href: "/events", label: "Browse workshops" },
+    { href: "/dashboard", label: "My bookings" },
+    { href: "mailto:hi@grait.io", label: "Contact" },
   ],
 };
 
 const sections = [
-  { links: footerLinks.product, title: "Product" },
-  { links: footerLinks.resources, title: "Resources" },
-  { links: footerLinks.legal, title: "Legal" },
+  { links: footerLinks.workshops, title: "Workshops" },
+  { links: footerLinks.grait, title: "grAIt" },
 ];
 
 export function Footer() {
@@ -43,26 +34,14 @@ export function Footer() {
               <Logo className="h-4" />
             </Link>
             <p className="max-w-xs text-muted-foreground text-sm leading-relaxed">
-              Open-source event management platform with AI-powered tools.
-              Create, manage, and discover events without vendor lock-in.
+              Hands-on AI workshops and sessions by grAIt with Mariusz Kreft.
             </p>
-            <div className="flex items-center gap-2">
-              <a
-                aria-label="GitHub"
-                className="inline-flex items-center justify-center rounded-lg border p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                href="https://github.com/Nishitbaria/openluma"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                <GitHubIcon className="size-4" />
-              </a>
-            </div>
           </div>
 
           {/* Navigation columns */}
           <nav
             aria-label="Footer navigation"
-            className="col-span-1 grid grid-cols-2 gap-8 sm:col-span-2 sm:grid-cols-3 lg:col-span-8 lg:gap-12"
+            className="col-span-1 grid grid-cols-2 gap-8 sm:col-span-2 sm:grid-cols-2 lg:col-span-8 lg:gap-12"
           >
             {sections.map((section) => (
               <div className="flex flex-col gap-3" key={section.title}>
@@ -91,10 +70,19 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-3 py-6 sm:flex-row">
           <p className="text-muted-foreground text-xs">
-            &copy; {new Date().getFullYear()} OpenLuma. All rights reserved.
+            &copy; {new Date().getFullYear()} Mariusz Kreft · grAIt
           </p>
           <p className="text-muted-foreground text-xs">
-            Built with Next.js, Vercel AI SDK & shadcn/ui. Licensed under MIT.
+            Built on{" "}
+            <a
+              className="underline"
+              href="https://github.com/Nishitbaria/openluma"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              OpenLuma
+            </a>{" "}
+            (MIT)
           </p>
         </div>
       </div>

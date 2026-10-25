@@ -16,7 +16,7 @@ import type { Metadata } from "next";
  * `openGraph` just like every other key.
  */
 
-const SITE_NAME = "OpenLuma";
+const SITE_NAME = "BookGrait";
 const OG_LOCALE = "en_US";
 
 interface PageMetadataInput {

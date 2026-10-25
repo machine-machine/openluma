@@ -54,7 +54,7 @@ export interface EventJsonLdInput {
 export function buildEventJsonLd(event: EventJsonLdInput) {
   const appUrl = getAppUrl();
   const url = `${appUrl}/e/${event.slug}`;
-  const description = event.description ?? `Join ${event.title} on OpenLuma.`;
+  const description = event.description ?? `Join ${event.title} on BookGrait.`;
 
   const location =
     event.type === "virtual"
@@ -121,8 +121,8 @@ export function buildOrganizationJsonLd() {
     description:
       "Open-source event management platform with AI-powered event creation.",
     logo: `${appUrl}/icon.svg`,
-    name: "OpenLuma",
-    sameAs: ["https://github.com/Nishitbaria/openluma"],
+    name: "BookGrait",
+    sameAs: ["https://grait.io"],
     url: appUrl,
   };
 }
@@ -132,7 +132,7 @@ export function buildWebSiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "OpenLuma",
+    name: "BookGrait",
     // `/events` implements `?search=` as an ilike title match, so this action
     // maps to a real search surface rather than an aspirational one.
     potentialAction: {

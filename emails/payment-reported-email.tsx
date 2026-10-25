@@ -48,7 +48,7 @@ export default function PaymentReportedEmail({
 
 PaymentReportedEmail.PreviewProps = {
   amount: "€99",
-  attendeesUrl: "https://openluma.m-2.cc/dashboard/events/evt_123/attendees",
+  attendeesUrl: "https://book.grait.io/dashboard/events/evt_123/attendees",
   eventTitle: "AI Beyond ChatGPT",
   guestEmail: "guest@example.com",
   guestName: "Alex",

@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { CtaSection } from "@/components/layout/cta-section";
-import { FeatureCards } from "@/components/layout/feature-cards";
 import { HeroSection } from "@/components/layout/hero-section";
-import { HowItWorks } from "@/components/layout/how-it-works";
-import { PixelParagraph } from "@/components/ui/pixel-paragraph-words";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 
 const HOME_DESCRIPTION =
-  "Run events end to end on OpenLuma: create them with AI, share a public page, collect RSVPs, send invitations, and check attendees in. All open source.";
+  "Book hands-on AI workshops and sessions by grAIt with Mariusz Kreft. Pick a date, reserve your seat, pay by PayPal or Revolut.";
 
 export const metadata: Metadata = buildPageMetadata({
   description: HOME_DESCRIPTION,
@@ -16,7 +13,7 @@ export const metadata: Metadata = buildPageMetadata({
   images: ["/opengraph-image"],
   path: "/",
   // Title is intentionally omitted: the root layout supplies the default
-  // (untemplated) one, and setting it here would render "… · OpenLuma".
+  // (untemplated) one, and setting it here would render "… · BookGrait".
 });
 
 export default function HomePage() {
@@ -25,41 +22,6 @@ export default function HomePage() {
       {/* Hero */}
       <HeroSection />
 
-      {/* Features */}
-      <section className="border-t bg-muted/30 py-24" id="features">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <h2 className="font-bold text-3xl tracking-tight sm:text-4xl">
-              Everything you need to run events
-            </h2>
-            <PixelParagraph
-              className="mt-4 text-muted-foreground"
-              font="circle"
-              pixelWordClassName="text-foreground"
-              pixelWords={["creation to check-in", "AI assistant"]}
-              text="From creation to check-in, OpenLuma handles the entire event lifecycle with modern tools and an AI assistant."
-            />
-          </div>
-          <FeatureCards />
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-24">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <h2 className="font-bold text-3xl tracking-tight sm:text-4xl">
-              Up and running in minutes
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              No complex setup. No credit card required.
-            </p>
-          </div>
-          <HowItWorks />
-        </div>
-      </section>
-
-      {/* Open source CTA */}
       <CtaSection />
     </div>
   );

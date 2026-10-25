@@ -61,10 +61,10 @@ export default function EventReminderEmail({
 EventReminderEmail.PreviewProps = {
   endTime: new Date("2026-08-14T21:00:00Z"),
   eventTitle: "Summer Product Launch",
-  eventUrl: "https://openluma.vercel.app/e/summer-launch",
+  eventUrl: "https://book.grait.io/e/summer-launch",
   location: "The Grand Hall, San Francisco",
   startTime: new Date("2026-08-14T18:00:00Z"),
-  ticketUrl: "https://openluma.vercel.app/ticket/evt_123",
+  ticketUrl: "https://book.grait.io/ticket/evt_123",
   timezone: "America/Los_Angeles",
 } satisfies EventReminderEmailProps;
 

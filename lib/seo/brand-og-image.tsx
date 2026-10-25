@@ -65,7 +65,7 @@ export async function renderBrandOgImage({
             letterSpacing: -0.5,
           }}
         >
-          OpenLuma
+          BookGrait
         </span>
       </div>
 

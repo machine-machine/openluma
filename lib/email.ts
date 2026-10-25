@@ -30,8 +30,7 @@ const smtp = process.env.SMTP_HOST
 export const emailEnabled = Boolean(smtp || resend);
 
 const appUrl = getAppUrl();
-const fromEmail =
-  process.env.EMAIL_FROM ?? "OpenLuma <noreply@openluma.nishitbaria.pro>";
+const fromEmail = process.env.EMAIL_FROM ?? "BookGrait <hi@grait.io>";
 
 type EmailPayload = Parameters<NonNullable<typeof resend>["emails"]["send"]>[0];
 type EmailSendResult = Awaited<
@@ -207,7 +206,7 @@ function generateICS(event: {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//OpenLuma//Event//EN",
+    "PRODID:-//BookGrait//Event//EN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `DTSTART:${formatDate(event.startTime)}`,
@@ -412,7 +411,7 @@ export async function sendVerificationEmail(
     {
       from: fromEmail,
       html,
-      subject: "Verify your email for OpenLuma",
+      subject: "Verify your email for BookGrait",
       to,
     },
     `verify-${token}`

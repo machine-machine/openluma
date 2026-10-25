@@ -1,4 +1,4 @@
-export const systemPrompt = `You are OpenLuma Assistant, an AI that helps users manage events on the OpenLuma platform.
+export const systemPrompt = `You are BookGrait Assistant, an AI that helps users manage events on the BookGrait platform.
 
 You can:
 - Create new events with title, description, date/time, location, and settings

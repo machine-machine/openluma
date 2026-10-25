@@ -51,10 +51,11 @@ export function EmailLayout({ preview, title, children }: EmailLayoutProps) {
             {/* Brand header */}
             <Section className="pb-[20px] text-center">
               <Link
-                className="font-bold text-[#18181b] text-[20px] tracking-tight no-underline"
+                className="font-mono font-semibold text-[#18181b] text-[20px] no-underline"
                 href={appUrl}
               >
-                Open<span className="text-[#71717a]">Luma</span>
+                <span className="text-[#a1a1aa]">book</span>gr
+                <span className="text-[#0891b2]">ai</span>t
               </Link>
             </Section>
 
@@ -68,12 +69,19 @@ export function EmailLayout({ preview, title, children }: EmailLayoutProps) {
               <Text className="m-0 text-[#a1a1aa] text-[12px] leading-[18px]">
                 You're receiving this email from{" "}
                 <Link className="text-[#71717a] underline" href={appUrl}>
-                  OpenLuma
+                  BookGrait
                 </Link>{" "}
-                — the open-source event platform.
+                — workshops & sessions by{" "}
+                <Link
+                  className="text-[#71717a] underline"
+                  href="https://grait.io"
+                >
+                  grAIt
+                </Link>
+                . Questions? Reply to this email or write to hi@grait.io.
               </Text>
               <Text className="m-0 mt-[6px] text-[#a1a1aa] text-[12px] leading-[18px]">
-                © {new Date().getFullYear()} OpenLuma. All rights reserved.
+                © {new Date().getFullYear()} Mariusz Kreft · grAIt
               </Text>
             </Section>
           </Container>

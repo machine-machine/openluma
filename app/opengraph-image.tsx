@@ -4,12 +4,11 @@ import { OG_CONTENT_TYPE, OG_SIZE } from "@/lib/seo/event-og-image";
 export const runtime = "nodejs";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
-export const alt = "OpenLuma | Open Source Event Platform";
+export const alt = "BookGrait | Workshops & sessions by grAIt";
 
 export default function Image() {
   return renderBrandOgImage({
-    subtitle:
-      "Create, manage, and discover events. The open source alternative to Luma.",
+    subtitle: "Hands-on AI workshops and sessions by grAIt.",
     title: "Events, end to end.",
   });
 }

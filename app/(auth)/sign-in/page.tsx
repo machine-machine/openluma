@@ -130,8 +130,8 @@ export default function SignInPage() {
               className="text-base text-muted-foreground"
               font="circle"
               pixelWordClassName="text-foreground"
-              pixelWords={["OpenLuma"]}
-              text="Sign in to your OpenLuma account."
+              pixelWords={["BookGrait"]}
+              text="Sign in to your BookGrait account."
             />
           </div>
           <form className="space-y-2" onSubmit={handleSubmit}>

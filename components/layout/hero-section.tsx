@@ -39,12 +39,10 @@ export function HeroSection() {
         <div className="mx-auto flex max-w-4xl flex-col items-center">
           {/* Single memorable claim, not a multi-feature pill */}
           <div className="mb-8 inline-flex items-center rounded-full border bg-muted/50 px-4 py-1.5 text-muted-foreground text-sm">
-            <AnimatedShinyText>
-              Open-source Lu.ma, no vendor lock-in
-            </AnimatedShinyText>
+            <AnimatedShinyText>Workshops & sessions by grAIt</AnimatedShinyText>
           </div>
 
-          {/* Brand-first: OpenLuma is the hero-level signal */}
+          {/* Brand-first: BookGrait is the hero-level signal */}
           <PixelHeading
             autoPlay
             className="font-bold text-5xl leading-none tracking-tight sm:text-7xl lg:text-8xl"
@@ -53,30 +51,30 @@ export function HeroSection() {
             showLabel={false}
             staggerDelay={120}
           >
-            OpenLuma
+            BookGrait
           </PixelHeading>
 
           <p className="mt-4 font-semibold text-2xl text-foreground tracking-tight sm:text-3xl">
-            Events, simplified.
+            Learn AI by building with it.
           </p>
 
           <PixelParagraph
             className="mx-auto mt-8 max-w-2xl text-lg text-muted-foreground leading-relaxed"
             font="circle"
             pixelWordClassName="text-foreground"
-            pixelWords={["open-source", "AI", "vendor lock-in"]}
-            text="Free, open-source event management. Create with AI, manage attendees, send invitations, and check in guests without vendor lock-in."
+            pixelWords={["hands-on", "AI", "PayPal or Revolut"]}
+            text="Book hands-on AI workshops and sessions with Mariusz Kreft. Pick a date, reserve your seat, pay by PayPal or Revolut."
           />
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <MetalButton asChild size="lg">
-              <Link href="/sign-up">
-                Get Started Free
+              <Link href="/events">
+                Browse workshops
                 <ArrowRight className="ml-2 size-4" />
               </Link>
             </MetalButton>
             <Button asChild size="lg" variant="outline">
-              <Link href="/events">Browse Events</Link>
+              <a href="https://grait.io">About grAIt</a>
             </Button>
           </div>
         </div>

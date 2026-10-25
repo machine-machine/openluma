@@ -1,14 +1,23 @@
 <svg
   height="32"
-  shape-rendering="crispEdges"
-  viewBox="0 0 32 32"
+  viewBox="0 0 64 64"
   width="32"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <title>OpenLuma</title>
-  <rect fill="#000000" height="32" rx="7" width="32" />
-  <g fill="#ffffff" transform="scale(2)">
-    <path d="M4 4h2v6h6v2H4z" />
-    <rect height="1" opacity="0.4" width="1" x="11" y="4" />
-  </g>
+  <title>BookGrait</title>
+  <rect fill="#07080c" height="64" rx="14" width="64" />
+  <circle cx="22" cy="38" fill="none" r="9" stroke="#67e8f9" stroke-width="6" />
+  <path
+    d="M34 29v18"
+    stroke="#67e8f9"
+    stroke-linecap="round"
+    stroke-width="6"
+  />
+  <path
+    d="M46 31v16"
+    stroke="#67e8f9"
+    stroke-linecap="round"
+    stroke-width="6"
+  />
+  <circle cx="46" cy="19" fill="#ffb35c" r="4.5" />
 </svg>

@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0a0a0a",
     categories: ["productivity", "social", "events"],
     description:
-      "Create, manage, and discover events. Open source alternative to Luma with AI-powered event management.",
+      "Book hands-on AI workshops and sessions by grAIt with Mariusz Kreft. Pick a date, reserve your seat, pay by PayPal or Revolut.",
     display: "standalone",
     icons: [
       { sizes: "any", src: "/icon.svg", type: "image/svg+xml" },
@@ -20,8 +20,8 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
-    name: "OpenLuma | Open Source Event Platform",
-    short_name: "OpenLuma",
+    name: "BookGrait | Workshops & sessions by grAIt",
+    short_name: "BookGrait",
     start_url: "/",
     theme_color: "#0a0a0a",
   };

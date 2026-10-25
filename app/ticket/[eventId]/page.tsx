@@ -110,7 +110,7 @@ export default function TicketPage() {
         <Card className="overflow-hidden shadow-xl">
           <div className="bg-primary px-6 py-5 text-center">
             <p className="font-medium text-primary-foreground/70 text-xs uppercase tracking-wider">
-              OpenLuma Event Ticket
+              BookGrait Event Ticket
             </p>
             <h1 className="mt-2 font-bold text-2xl text-primary-foreground">
               {ticket.eventTitle}

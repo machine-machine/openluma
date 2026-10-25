@@ -1,20 +1,16 @@
 /**
- * The OpenLuma mark, as plain inline-styled JSX.
+ * The grAIt mark, as plain inline-styled JSX.
  *
  * Rendered by Satori inside `next/og` `ImageResponse` (favicon, apple icon, OG
  * images), so it must avoid Tailwind classes and anything outside Satori's
- * supported CSS subset — inline styles and flexbox only.
- *
- * Geometry sits on a 16×16 pixel grid: a 2-unit-thick L inside the centred
- * 8×8 area, plus one dimmed pixel top-right. `public/icon.svg` is a
- * hand-maintained copy of this same geometry for the manifest and SVG favicon;
- * update both together if the logo changes.
+ * supported CSS subset — inline styles and flexbox only. Same geometry as
+ * `components/logo.tsx` and `public/icon.svg`.
  */
 export function BrandMark({ size, radius }: { size: number; radius?: number }) {
   return (
     <div
       style={{
-        background: "#000000",
+        background: "#07080c",
         borderRadius: radius ?? Math.round(size * 0.22),
         display: "flex",
         height: size,
@@ -22,16 +18,28 @@ export function BrandMark({ size, radius }: { size: number; radius?: number }) {
       }}
     >
       {/* No <title>: Satori draws it as visible text over the glyph. */}
-      <svg
-        aria-hidden="true"
-        fill="white"
-        height={size}
-        shapeRendering="crispEdges"
-        viewBox="0 0 16 16"
-        width={size}
-      >
-        <path d="M4 4h2v6h6v2H4z" />
-        <rect height="1" opacity="0.4" width="1" x="11" y="4" />
+      <svg aria-hidden="true" height={size} viewBox="0 0 64 64" width={size}>
+        <circle
+          cx="22"
+          cy="38"
+          fill="none"
+          r="9"
+          stroke="#67e8f9"
+          strokeWidth="6"
+        />
+        <path
+          d="M34 29v18"
+          stroke="#67e8f9"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <path
+          d="M46 31v16"
+          stroke="#67e8f9"
+          strokeLinecap="round"
+          strokeWidth="6"
+        />
+        <circle cx="46" cy="19" fill="#ffb35c" r="4.5" />
       </svg>
     </div>
   );
