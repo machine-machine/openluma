@@ -6,9 +6,10 @@ import { getAppUrl } from "@/lib/app-url";
 const { UMAMI_URL, UMAMI_WEBSITE_ID, NEXT_PUBLIC_UMAMI_WEBSITE_ID } =
   process.env;
 const WEBSITE_ID = UMAMI_WEBSITE_ID ?? NEXT_PUBLIC_UMAMI_WEBSITE_ID;
-// Umami drops requests whose user agent looks like a bot.
+// Umami silently drops requests whose user agent looks like a bot (any
+// extra token such as a product name triggers it), so send a plain one.
 const USER_AGENT =
-  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36 BookGrait-Server";
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
 
 export function trackServerEvent(
   name: string,
