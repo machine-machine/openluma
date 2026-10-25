@@ -5,7 +5,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { events, rsvps, rsvpTimeline, user } from "@/lib/db/schema";
 import { sendRsvpConfirmationEmail } from "@/lib/email";
-import { removeRsvp, setRsvpStatus, submitRsvp } from "@/lib/events/rsvp";
+import {
+  paymentDetails,
+  removeRsvp,
+  setRsvpStatus,
+  submitRsvp,
+} from "@/lib/events/rsvp";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function GET(
@@ -177,7 +182,10 @@ export async function PATCH(
                 timezone: event.timezone,
                 title: event.title,
               },
-              customMessage?.trim() || undefined
+              customMessage?.trim() || undefined,
+              status === "pending"
+                ? await paymentDetails(updated, eventId)
+                : undefined
             );
           }
         } catch (err) {

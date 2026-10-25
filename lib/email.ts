@@ -1,14 +1,33 @@
 import { render } from "@react-email/render";
+import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import EventReminderEmail from "@/emails/event-reminder-email";
 import InvitationEmail from "@/emails/invitation-email";
-import RsvpStatusEmail from "@/emails/rsvp-status-email";
+import PaymentReportedEmail from "@/emails/payment-reported-email";
+import RsvpStatusEmail, { type PaymentInfo } from "@/emails/rsvp-status-email";
 import VerifyEmail from "@/emails/verify-email";
 import { getAppUrl } from "@/lib/app-url";
 import { icsText } from "@/lib/utils/export";
 
 const apiKey = process.env.RESEND_API_KEY;
 export const resend = apiKey ? new Resend(apiKey) : null;
+
+// SMTP takes precedence over Resend when SMTP_HOST is set.
+const smtpPort = Number(process.env.SMTP_PORT ?? 587);
+const smtp = process.env.SMTP_HOST
+  ? nodemailer.createTransport({
+      auth: process.env.SMTP_USER
+        ? { pass: process.env.SMTP_PASS, user: process.env.SMTP_USER }
+        : undefined,
+      host: process.env.SMTP_HOST,
+      port: smtpPort,
+      secure: process.env.SMTP_SECURE
+        ? process.env.SMTP_SECURE === "true"
+        : smtpPort === 465,
+    })
+  : null;
+
+export const emailEnabled = Boolean(smtp || resend);
 
 const appUrl = getAppUrl();
 const fromEmail =
@@ -26,6 +45,9 @@ const RETRYABLE_NETWORK_CODES = new Set([
   "ECONNRESET",
   "ECONNREFUSED",
   "EAI_AGAIN",
+  // nodemailer: connection lost / greeting timeout
+  "ECONNECTION",
+  "ESOCKET",
 ]);
 const ICS_DATE_SEPARATORS_RE = /[-:]/g;
 const ICS_DATE_MILLIS_RE = /\.\d{3}/;
@@ -41,8 +63,49 @@ function isRetryableStatus(statusCode: number | null | undefined) {
 }
 
 function isRetryableNetworkError(err: unknown) {
-  const code = (err as { code?: string } | undefined)?.code;
+  const { code, responseCode } =
+    (err as { code?: string; responseCode?: number } | undefined) ?? {};
+  // SMTP 4xx replies are temporary failures (greylisting, rate limits).
+  if (typeof responseCode === "number") {
+    return responseCode >= 400 && responseCode < 500;
+  }
   return typeof code === "string" && RETRYABLE_NETWORK_CODES.has(code);
+}
+
+async function deliver(
+  payload: EmailPayload,
+  idempotencyKey: string
+): Promise<EmailSendResult> {
+  if (smtp) {
+    const p = payload as {
+      attachments?: {
+        content: Buffer | string;
+        contentType?: string;
+        filename: string;
+      }[];
+      from: string;
+      html?: string;
+      subject: string;
+      to: string | string[];
+    };
+    const info = await smtp.sendMail({
+      attachments: p.attachments,
+      from: p.from,
+      // Stable Message-ID: a retried send reuses it, so mail clients dedupe.
+      html: p.html,
+      messageId: `<${idempotencyKey}@${new URL(appUrl).hostname}>`,
+      subject: p.subject,
+      to: p.to,
+    });
+    return {
+      data: { id: info.messageId },
+      error: null,
+    } as unknown as EmailSendResult;
+  }
+  if (!resend) {
+    throw new Error("Email is not configured");
+  }
+  return resend.emails.send(payload, { idempotencyKey });
 }
 
 /**
@@ -57,17 +120,13 @@ async function sendWithReliability(
   payload: EmailPayload,
   idempotencyKey: string
 ): Promise<EmailSendResult> {
-  if (!resend) {
-    throw new Error("Resend is not configured");
-  }
-
   let lastResult: EmailSendResult | undefined;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
     try {
       // biome-ignore lint/performance/noAwaitInLoops: retry loop is inherently sequential — each attempt must observe the previous attempt's result/timeout before deciding whether (and how long) to back off before the next try.
       const result = await Promise.race([
-        resend.emails.send(payload, { idempotencyKey }),
+        deliver(payload, idempotencyKey),
         new Promise<never>((_, reject) =>
           setTimeout(
             () =>
@@ -168,8 +227,8 @@ export async function sendInvitationEmail(
   inviteToken: string,
   role: "attendee" | "cohost" = "attendee"
 ) {
-  if (!resend) {
-    console.warn("Resend not configured, skipping invitation email");
+  if (!emailEnabled) {
+    console.warn("Email not configured, skipping invitation email");
     return;
   }
 
@@ -216,9 +275,10 @@ export async function sendRsvpConfirmationEmail(
     location: string | null;
     timezone?: string;
   },
-  customMessage?: string
+  customMessage?: string,
+  payment?: PaymentInfo
 ) {
-  if (!resend) {
+  if (!emailEnabled) {
     return;
   }
 
@@ -246,6 +306,7 @@ export async function sendRsvpConfirmationEmail(
         : undefined,
       eventTitle,
       eventUrl,
+      payment,
       status,
       ticketUrl,
     })
@@ -292,7 +353,7 @@ export async function sendEventReminderEmail(
     location?: string | null;
   }
 ) {
-  if (!resend) {
+  if (!emailEnabled) {
     return;
   }
 
@@ -335,13 +396,13 @@ export async function sendVerificationEmail(
   verifyUrl: string,
   token: string
 ) {
-  if (!resend) {
+  if (!emailEnabled) {
     // Without an email provider there is no other way to finish sign-up
     // locally; never log the link in production, it is a credential.
     if (process.env.NODE_ENV === "production") {
-      throw new Error("Resend is not configured, cannot verify email");
+      throw new Error("Email is not configured, cannot verify email");
     }
-    console.warn(`Resend not configured. Verify ${to} at: ${verifyUrl}`);
+    console.warn(`Email not configured. Verify ${to} at: ${verifyUrl}`);
     return;
   }
 
@@ -361,5 +422,40 @@ export async function sendVerificationEmail(
     throw Object.assign(new Error("Failed to send verification email"), {
       cause: error,
     });
+  }
+}
+
+/** Tells the host a guest says they paid, so they can check and approve. */
+export async function sendPaymentReportedEmail(
+  to: string,
+  details: {
+    amount: string;
+    eventId: string;
+    eventTitle: string;
+    guestEmail: string;
+    guestName: string;
+    reference: string;
+  }
+) {
+  if (!emailEnabled) {
+    return;
+  }
+  const html = await render(
+    PaymentReportedEmail({
+      ...details,
+      attendeesUrl: `${appUrl}/dashboard/events/${details.eventId}/attendees`,
+    })
+  );
+  const { error } = await sendWithReliability(
+    {
+      from: fromEmail,
+      html,
+      subject: `Payment to check: ${details.reference} — ${details.eventTitle}`,
+      to,
+    },
+    `payment-reported-${details.reference}`
+  );
+  if (error) {
+    console.error("Failed to send payment notification email:", error);
   }
 }

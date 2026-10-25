@@ -57,6 +57,11 @@ interface EventFormProps {
     capacity: number | null;
     requiresApproval: boolean;
     categoryId: string | null;
+    currency?: string;
+    priceCents?: number | null;
+    earlyBirdPriceCents?: number | null;
+    earlyBirdEndsAt?: string | null;
+    earlyBirdSeats?: number | null;
     slug?: string;
     richDescription?: string | null;
   };
@@ -130,6 +135,26 @@ export function EventForm({ event }: EventFormProps) {
     // biome-ignore lint/suspicious/noUnnecessaryConditions: event is optional (new-event mode has none), so this fallback is real
     event?.requiresApproval ?? false
   );
+  // Prices are typed in major units (€99) and stored in cents.
+  const toMajor = (c: number | null | undefined) =>
+    typeof c === "number" ? `${c / 100}` : "";
+  const toCents = (v: string) => Math.round(Number(v) * 100);
+  const [price, setPrice] = useState(toMajor(event?.priceCents));
+  const [earlyBirdPrice, setEarlyBirdPrice] = useState(
+    toMajor(event?.earlyBirdPriceCents)
+  );
+  const [earlyBirdEndsAt, setEarlyBirdEndsAt] = useState(
+    event?.earlyBirdEndsAt
+      ? formatInTimeZone(
+          new Date(event.earlyBirdEndsAt),
+          timezone,
+          "yyyy-MM-dd'T'HH:mm"
+        )
+      : ""
+  );
+  const [earlyBirdSeats, setEarlyBirdSeats] = useState(
+    `${event?.earlyBirdSeats ?? ""}`
+  );
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(isEditing);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: submit handler validates and assembles the full event payload across many optional fields; extracting pieces would obscure the linear create/edit flow
@@ -145,9 +170,20 @@ export function EventForm({ event }: EventFormProps) {
       capacity: capacity ? Number(capacity) : empty,
       coverImage: coverImage || empty,
       description: plainDescription || empty,
+      earlyBirdEndsAt:
+        price && earlyBirdPrice && earlyBirdEndsAt
+          ? fromZonedTime(earlyBirdEndsAt, timezone).toISOString()
+          : empty,
+      earlyBirdPriceCents:
+        price && earlyBirdPrice ? toCents(earlyBirdPrice) : empty,
+      earlyBirdSeats:
+        price && earlyBirdPrice && earlyBirdSeats
+          ? Number(earlyBirdSeats)
+          : empty,
       endTime: endTime ? fromZonedTime(endTime, timezone).toISOString() : empty,
       location: (formData.get("location") as string) || empty,
       locationDetails: locationDetails || empty,
+      priceCents: price && Number(price) > 0 ? toCents(price) : empty,
       requiresApproval,
       richDescription: richDescription || empty,
       startTime: fromZonedTime(startTime, timezone).toISOString(),
@@ -362,6 +398,68 @@ export function EventForm({ event }: EventFormProps) {
                     type="number"
                     value={capacity}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-lg border p-4">
+                <div>
+                  <p className="font-medium text-sm">Ticket price</p>
+                  <p className="text-muted-foreground text-xs">
+                    Leave empty for a free event. Guests pay via your PayPal.me
+                    / Revolut.me link; you confirm each payment before the
+                    ticket is sent.
+                  </p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Regular price (EUR)</Label>
+                    <Input
+                      id="price"
+                      min={0}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="Free"
+                      step="0.01"
+                      type="number"
+                      value={price}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="earlyBirdPrice">
+                      Early bird price (EUR)
+                    </Label>
+                    <Input
+                      disabled={!price}
+                      id="earlyBirdPrice"
+                      min={0}
+                      onChange={(e) => setEarlyBirdPrice(e.target.value)}
+                      placeholder="No early bird"
+                      step="0.01"
+                      type="number"
+                      value={earlyBirdPrice}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="earlyBirdEndsAt">Early bird ends</Label>
+                    <Input
+                      disabled={!(price && earlyBirdPrice)}
+                      id="earlyBirdEndsAt"
+                      onChange={(e) => setEarlyBirdEndsAt(e.target.value)}
+                      type="datetime-local"
+                      value={earlyBirdEndsAt}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="earlyBirdSeats">Early bird seats</Label>
+                    <Input
+                      disabled={!(price && earlyBirdPrice)}
+                      id="earlyBirdSeats"
+                      min={1}
+                      onChange={(e) => setEarlyBirdSeats(e.target.value)}
+                      placeholder="No limit"
+                      type="number"
+                      value={earlyBirdSeats}
+                    />
+                  </div>
                 </div>
               </div>
 

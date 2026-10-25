@@ -118,6 +118,9 @@ export async function PUT(
   if (updateData.endTime) {
     updates.endTime = new Date(updateData.endTime);
   }
+  if (updateData.earlyBirdEndsAt) {
+    updates.earlyBirdEndsAt = new Date(updateData.earlyBirdEndsAt);
+  }
 
   const [updated] = await db
     .update(events)

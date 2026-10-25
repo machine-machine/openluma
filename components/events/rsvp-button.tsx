@@ -14,10 +14,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
+import { type PaymentState, RsvpPayment } from "./rsvp-payment";
 import {
   type EventQuestion,
   RsvpQuestionsDialog,
 } from "./rsvp-questions-dialog";
+
+function rsvpToast(status: string, paid: boolean) {
+  if (status === "pending") {
+    return paid
+      ? "Seat reserved! Pay below to confirm it."
+      : "RSVP submitted! Awaiting host approval.";
+  }
+  if (status === "waitlisted") {
+    return "You've been added to the waitlist.";
+  }
+  return "You're in! 🎉 Add it to your calendar so you don't miss it.";
+}
 
 export function RsvpButton({
   eventId,
@@ -27,6 +40,8 @@ export function RsvpButton({
   questions = [],
   waitlistPosition,
   autoRegister = false,
+  price,
+  payment,
 }: {
   eventId: string;
   eventSlug?: string;
@@ -35,6 +50,8 @@ export function RsvpButton({
   questions?: EventQuestion[];
   waitlistPosition?: number | null;
   autoRegister?: boolean;
+  price?: { label: string; note: string | null } | null;
+  payment?: PaymentState | null;
 }) {
   const router = useRouter();
   const { data: session } = authClient.useSession();
@@ -126,6 +143,16 @@ export function RsvpButton({
         <p className="text-center text-muted-foreground text-xs">
           See you there — add it to your calendar below.
         </p>
+        {cancelConfirm("Cancel RSVP")}
+        {cancelModal}
+      </div>
+    );
+  }
+
+  if (status === "pending" && payment) {
+    return (
+      <div className="space-y-3">
+        <RsvpPayment eventId={eventId} payment={payment} />
         {cancelConfirm("Cancel RSVP")}
         {cancelModal}
       </div>
@@ -233,15 +260,7 @@ export function RsvpButton({
       setStatus(newStatus);
       setDialogOpen(false);
 
-      if (newStatus === "pending") {
-        toast.success("RSVP submitted! Awaiting host approval.");
-      } else if (newStatus === "waitlisted") {
-        toast.success("You've been added to the waitlist.");
-      } else {
-        toast.success(
-          "You're in! 🎉 Add it to your calendar so you don't miss it."
-        );
-      }
+      toast.success(rsvpToast(newStatus, Boolean(price)));
 
       router.refresh();
     } catch {
@@ -273,9 +292,12 @@ export function RsvpButton({
     }
   }
 
-  const rsvpActionLabel = requiresApproval
-    ? "Request to Attend"
-    : "RSVP - I'm Going!";
+  const rsvpActionLabel = (() => {
+    if (price) {
+      return `Reserve a seat · ${price.label}`;
+    }
+    return requiresApproval ? "Request to Attend" : "RSVP - I'm Going!";
+  })();
   const rsvpButtonLabel = loading ? "Submitting..." : rsvpActionLabel;
 
   return (
@@ -288,6 +310,11 @@ export function RsvpButton({
       >
         {rsvpButtonLabel}
       </Button>
+      {price?.note ? (
+        <p className="text-center text-muted-foreground text-xs">
+          {price.note}
+        </p>
+      ) : null}
       {questions.length > 0 && (
         <RsvpQuestionsDialog
           loading={loading}

@@ -21,11 +21,19 @@ interface EventInfo {
   timezone?: string;
 }
 
+export interface PaymentInfo {
+  amount: string;
+  links: { label: string; url: string }[];
+  reference: string;
+  tier?: string | null;
+}
+
 interface RsvpStatusEmailProps {
   customMessage?: string;
   event?: EventInfo;
   eventTitle: string;
   eventUrl: string;
+  payment?: PaymentInfo;
   status: RsvpStatus;
   ticketUrl?: string;
 }
@@ -72,6 +80,7 @@ export default function RsvpStatusEmail({
   ticketUrl,
   event,
   customMessage,
+  payment,
 }: RsvpStatusEmailProps) {
   const c = config[status] ?? {
     body: `Your RSVP status for this event has been updated to ${status}.`,
@@ -81,6 +90,10 @@ export default function RsvpStatusEmail({
   };
 
   const isApproved = status === "approved";
+  const awaitingPayment = status === "pending" && payment;
+  const body = awaitingPayment
+    ? "Your seat is reserved. To confirm it, pay using one of the buttons below and put your payment reference in the payment note. Once the host sees your payment, you'll get your ticket by email."
+    : c.body;
   const preview = isApproved
     ? `You're in! ${eventTitle}`
     : `${c.header} — ${eventTitle}`;
@@ -95,8 +108,39 @@ export default function RsvpStatusEmail({
         </Section>
 
         <Text className="m-0 text-[#3f3f46] text-[15px] leading-[24px]">
-          {c.body}
+          {body}
         </Text>
+
+        {awaitingPayment ? (
+          <Section className="mt-[20px] rounded-[10px] bg-[#f4f4f5] px-[20px] py-[16px]">
+            <Text className="m-0 text-[#71717a] text-[13px] leading-[20px]">
+              Amount{payment.tier === "early_bird" ? " (early bird)" : ""}
+            </Text>
+            <Text className="m-0 font-semibold text-[#18181b] text-[22px] leading-[30px]">
+              {payment.amount}
+            </Text>
+            <Text className="m-0 mt-[10px] text-[#71717a] text-[13px] leading-[20px]">
+              Payment reference — put this in the payment note
+            </Text>
+            <Text className="m-0 font-mono font-semibold text-[#18181b] text-[18px] leading-[26px]">
+              {payment.reference}
+            </Text>
+            {payment.links.map((link) => (
+              <Section className="mt-[12px]" key={link.label}>
+                <Button
+                  className="box-border block w-full rounded-[10px] bg-[#18181b] px-[24px] py-[12px] text-center font-semibold text-[15px] text-white no-underline"
+                  href={link.url}
+                >
+                  Pay {payment.amount} with {link.label}
+                </Button>
+              </Section>
+            ))}
+            <Text className="m-0 mt-[12px] text-[#71717a] text-[13px] leading-[20px]">
+              After paying, open the event page and tap “I've paid” so the host
+              can check it faster.
+            </Text>
+          </Section>
+        ) : null}
 
         {customMessage ? (
           <Section className="mt-[16px] rounded-[10px] border-[#a1a1aa] border-l-[3px] border-solid border-none bg-[#f4f4f5] px-[16px] py-[12px]">

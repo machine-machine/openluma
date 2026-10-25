@@ -1,4 +1,4 @@
-import { and, asc, eq, ne, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, ne, type SQL } from "drizzle-orm";
 import { z } from "zod/v4";
 import { db } from "@/lib/db";
 import {
@@ -11,6 +11,13 @@ import {
 } from "@/lib/db/schema";
 import { sendRsvpConfirmationEmail } from "@/lib/email";
 import { invitationEmailMatches } from "@/lib/events/invitations";
+import {
+  createPaymentReference,
+  formatPrice,
+  isPaidEvent,
+  paymentLinks,
+  quotePrice,
+} from "@/lib/payments";
 
 interface RsvpUser {
   email: string;
@@ -38,18 +45,90 @@ const messageInput = z.string().trim().max(500).optional();
  */
 async function lockEvent(tx: Tx, eventId: string) {
   const [event] = await tx
-    .select({ capacity: events.capacity })
+    .select({
+      capacity: events.capacity,
+      currency: events.currency,
+      earlyBirdEndsAt: events.earlyBirdEndsAt,
+      earlyBirdPriceCents: events.earlyBirdPriceCents,
+      earlyBirdSeats: events.earlyBirdSeats,
+      priceCents: events.priceCents,
+    })
     .from(events)
     .where(eq(events.id, eventId))
     .for("update");
   return event;
 }
 
+type LockedEvent = NonNullable<Awaited<ReturnType<typeof lockEvent>>>;
+
 function countApproved(tx: Tx, eventId: string) {
   return tx.$count(
     rsvps,
     and(eq(rsvps.eventId, eventId), eq(rsvps.status, "approved"))
   );
+}
+
+// On a paid event an unpaid (pending) booking holds its seat, so a 12-seat
+// workshop can't take more payments than it has places.
+function holdsSeat(event: LockedEvent, status: RsvpStatus) {
+  return status === "approved" || (isPaidEvent(event) && status === "pending");
+}
+
+function countHeld(tx: Tx, eventId: string, event: LockedEvent) {
+  return isPaidEvent(event)
+    ? tx.$count(
+        rsvps,
+        and(
+          eq(rsvps.eventId, eventId),
+          inArray(rsvps.status, ["approved", "pending"])
+        )
+      )
+    : countApproved(tx, eventId);
+}
+
+/** Price, tier and reference for a guest taking a seat on a paid event now. */
+async function newBooking(tx: Tx, eventId: string, event: LockedEvent) {
+  const earlyBirdTaken = await tx.$count(
+    rsvps,
+    and(
+      eq(rsvps.eventId, eventId),
+      eq(rsvps.priceTier, "early_bird"),
+      inArray(rsvps.status, ["approved", "pending"])
+    )
+  );
+  const quote = quotePrice(event, earlyBirdTaken);
+  return quote
+    ? {
+        paymentReference: createPaymentReference(),
+        paymentStatus: "unpaid" as const,
+        priceCents: quote.priceCents,
+        priceTier: quote.tier,
+      }
+    : {};
+}
+
+/** What the pending email shows a guest who still has to pay. */
+export async function paymentDetails(
+  rsvp: Pick<
+    typeof rsvps.$inferSelect,
+    "paymentReference" | "paymentStatus" | "priceCents" | "priceTier"
+  >,
+  eventId: string
+) {
+  if (!(rsvp.priceCents && rsvp.paymentReference)) {
+    return;
+  }
+  const event = await db.query.events.findFirst({
+    columns: { currency: true },
+    where: eq(events.id, eventId),
+  });
+  const currency = event?.currency ?? "EUR";
+  return {
+    amount: formatPrice(rsvp.priceCents, currency),
+    links: paymentLinks(rsvp.priceCents, currency),
+    reference: rsvp.paymentReference,
+    tier: rsvp.priceTier,
+  };
 }
 
 function toggleError(q: Question, value: unknown) {
@@ -219,18 +298,21 @@ export async function submitRsvp(
 
     // Invited guests who accepted are approved outright; everyone else follows
     // the event's approval and capacity rules.
+    // A paid seat stays pending until the host confirms the payment.
+    const paid = isPaidEvent(locked);
     const resolveStatus = async () => {
-      if (hasAcceptedInvite) {
+      if (hasAcceptedInvite && !paid) {
         return "approved";
       }
       if (
         locked.capacity &&
-        (await countApproved(tx, eventId)) >= locked.capacity
+        (await countHeld(tx, eventId, locked)) >= locked.capacity
       ) {
         return "waitlisted";
       }
-      return event.requiresApproval ? "pending" : "approved";
+      return paid || event.requiresApproval ? "pending" : "approved";
     };
+    const status = await resolveStatus();
 
     const [rsvp] = await tx
       .insert(rsvps)
@@ -238,8 +320,9 @@ export async function submitRsvp(
         customAnswers: event.questions.length > 0 ? answers : null,
         eventId,
         message: message.data || null,
-        status: await resolveStatus(),
+        status,
         userId: rsvpUser.id,
+        ...(status === "pending" ? await newBooking(tx, eventId, locked) : {}),
       })
       .returning();
     return { kind: "created", rsvp } as const;
@@ -277,15 +360,22 @@ export async function submitRsvp(
 
   // Send confirmation email (ticket if auto-approved, pending notice otherwise)
   if (rsvp.status === "approved" || rsvp.status === "pending") {
-    await sendRsvpConfirmationEmail(rsvpUser.email, event.title, rsvp.status, {
-      endTime: event.endTime,
-      id: event.id,
-      location: event.location,
-      slug: event.slug ?? undefined,
-      startTime: event.startTime,
-      timezone: event.timezone,
-      title: event.title,
-    }).catch((err) => console.error("Failed to send ticket email:", err));
+    await sendRsvpConfirmationEmail(
+      rsvpUser.email,
+      event.title,
+      rsvp.status,
+      {
+        endTime: event.endTime,
+        id: event.id,
+        location: event.location,
+        slug: event.slug ?? undefined,
+        startTime: event.startTime,
+        timezone: event.timezone,
+        title: event.title,
+      },
+      undefined,
+      await paymentDetails(rsvp, eventId)
+    ).catch((err) => console.error("Failed to send ticket email:", err));
   }
 
   return { created: true, ok: true, rsvp };
@@ -305,8 +395,8 @@ export async function removeRsvp(eventId: string, match: SQL) {
       .returning({ status: rsvps.status });
     return {
       promoted:
-        locked && deleted?.status === "approved"
-          ? await promoteNext(tx, eventId, locked.capacity)
+        locked && deleted && holdsSeat(locked, deleted.status)
+          ? await promoteNext(tx, eventId, locked)
           : undefined,
       removed: !!deleted,
     };
@@ -338,21 +428,29 @@ export async function setRsvpStatus(
     }
     if (
       status === "approved" &&
-      current.status !== "approved" &&
+      !holdsSeat(locked, current.status) &&
       locked.capacity &&
-      (await countApproved(tx, eventId)) >= locked.capacity
+      (await countHeld(tx, eventId, locked)) >= locked.capacity
     ) {
       return { kind: "full" } as const;
     }
 
+    // On a paid event the host approves once the payment has arrived.
+    const paid = isPaidEvent(locked);
+    let payment = {};
+    if (paid && status === "approved") {
+      payment = { paymentStatus: "paid" as const };
+    } else if (paid && status === "pending" && current.status !== "pending") {
+      payment = await newBooking(tx, eventId, locked);
+    }
     const [rsvp] = await tx
       .update(rsvps)
-      .set({ status, updatedAt: new Date() })
+      .set({ status, updatedAt: new Date(), ...payment })
       .where(eq(rsvps.id, rsvpId))
       .returning();
     const promoted =
-      current.status === "approved" && status !== "approved"
-        ? await promoteNext(tx, eventId, locked.capacity, rsvpId)
+      holdsSeat(locked, current.status) && !holdsSeat(locked, status)
+        ? await promoteNext(tx, eventId, locked, rsvpId)
         : undefined;
     return {
       fromStatus: current.status,
@@ -375,10 +473,13 @@ export async function setRsvpStatus(
 async function promoteNext(
   tx: Tx,
   eventId: string,
-  capacity: number | null,
+  event: LockedEvent,
   skipId?: string
 ) {
-  if (capacity && (await countApproved(tx, eventId)) >= capacity) {
+  if (
+    event.capacity &&
+    (await countHeld(tx, eventId, event)) >= event.capacity
+  ) {
     return;
   }
   const next = await tx.query.rsvps.findFirst({
@@ -390,36 +491,44 @@ async function promoteNext(
       skipId ? ne(rsvps.id, skipId) : undefined
     ),
   });
-  if (next) {
-    await tx
-      .update(rsvps)
-      .set({ status: "approved", updatedAt: new Date() })
-      .where(eq(rsvps.id, next.id));
+  if (!next) {
+    return;
   }
-  return next;
+  // A paid seat is offered, not given: the guest gets payment instructions.
+  const status = isPaidEvent(event) ? "pending" : "approved";
+  const [promoted] = await tx
+    .update(rsvps)
+    .set({
+      status,
+      updatedAt: new Date(),
+      ...(status === "pending" ? await newBooking(tx, eventId, event) : {}),
+    })
+    .where(eq(rsvps.id, next.id))
+    .returning();
+  return promoted;
 }
 
-function afterPromotion(
-  eventId: string,
-  promoted: { id: string; userId: string }
-) {
+function afterPromotion(eventId: string, promoted: typeof rsvps.$inferSelect) {
   db.insert(rsvpTimeline)
     .values({
       eventId,
       fromStatus: "waitlisted",
       rsvpId: promoted.id,
-      toStatus: "approved",
+      toStatus: promoted.status,
       type: "status_changed",
     })
     .catch(() => {
       // ignore: best-effort timeline logging
     });
-  notifyPromoted(eventId, promoted.userId).catch((err) =>
+  notifyPromoted(eventId, promoted).catch((err) =>
     console.error("Failed to send waitlist promotion email:", err)
   );
 }
 
-async function notifyPromoted(eventId: string, userId: string) {
+async function notifyPromoted(
+  eventId: string,
+  promoted: typeof rsvps.$inferSelect
+) {
   const [event, guest] = await Promise.all([
     db.query.events.findFirst({
       columns: {
@@ -435,19 +544,26 @@ async function notifyPromoted(eventId: string, userId: string) {
     }),
     db.query.user.findFirst({
       columns: { email: true },
-      where: eq(user.id, userId),
+      where: eq(user.id, promoted.userId),
     }),
   ]);
   if (!(event && guest?.email)) {
     return;
   }
-  await sendRsvpConfirmationEmail(guest.email, event.title, "approved", {
-    endTime: event.endTime,
-    id: event.id,
-    location: event.location,
-    slug: event.slug ?? undefined,
-    startTime: event.startTime,
-    timezone: event.timezone,
-    title: event.title,
-  });
+  await sendRsvpConfirmationEmail(
+    guest.email,
+    event.title,
+    promoted.status,
+    {
+      endTime: event.endTime,
+      id: event.id,
+      location: event.location,
+      slug: event.slug ?? undefined,
+      startTime: event.startTime,
+      timezone: event.timezone,
+      title: event.title,
+    },
+    undefined,
+    await paymentDetails(promoted, eventId)
+  );
 }

@@ -19,15 +19,24 @@ const timezoneSchema = z
   .refine(isValidTimeZone, { message: "Invalid timezone" });
 const eventTypeSchema = z.enum(["in_person", "virtual", "hybrid"]);
 const visibilitySchema = z.enum(["public", "private"]);
+const cents = z.number().int().min(0).max(10_000_000);
+const currencySchema = z
+  .string()
+  .regex(/^[A-Z]{3}$/, { message: "Currency must be a 3-letter code" });
 
 export const createEventSchema = z.object({
   capacity: z.number().int().positive().optional(),
   categoryId: z.string().optional(),
   coverImage: uploadedImageUrl.optional(),
+  currency: currencySchema.default("EUR"),
   description: z.string().optional(),
+  earlyBirdEndsAt: z.string().optional(),
+  earlyBirdPriceCents: cents.optional(),
+  earlyBirdSeats: z.number().int().positive().optional(),
   endTime: z.string().optional(),
   location: z.string().optional(),
   locationDetails: z.string().optional(),
+  priceCents: cents.optional(),
   requiresApproval: z.boolean().default(false),
   richDescription: z.string().optional(),
   startTime: z.string().min(1, "Start time is required"),
@@ -46,10 +55,15 @@ export const updateEventSchema = createEventSchema
     capacity: z.number().int().positive().nullable(),
     categoryId: z.string().nullable(),
     coverImage: uploadedImageUrl.nullable(),
+    currency: currencySchema,
     description: z.string().nullable(),
+    earlyBirdEndsAt: z.string().nullable(),
+    earlyBirdPriceCents: cents.nullable(),
+    earlyBirdSeats: z.number().int().positive().nullable(),
     endTime: z.string().nullable(),
     location: z.string().nullable(),
     locationDetails: z.string().nullable(),
+    priceCents: cents.nullable(),
     requiresApproval: z.boolean(),
     richDescription: z.string().nullable(),
     slug: z

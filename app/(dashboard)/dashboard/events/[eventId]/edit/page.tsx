@@ -44,7 +44,11 @@ export default async function EditEventPage({
           capacity: event.capacity,
           categoryId: event.categoryId,
           coverImage: event.coverImage,
+          currency: event.currency,
           description: event.description,
+          earlyBirdEndsAt: event.earlyBirdEndsAt?.toISOString() ?? null,
+          earlyBirdPriceCents: event.earlyBirdPriceCents,
+          earlyBirdSeats: event.earlyBirdSeats,
           endTime:
             event.endTime && Number.isFinite(event.endTime.getTime())
               ? event.endTime.toISOString()
@@ -52,6 +56,7 @@ export default async function EditEventPage({
           id: event.id,
           location: event.location,
           locationDetails: event.locationDetails,
+          priceCents: event.priceCents,
           requiresApproval: event.requiresApproval,
           richDescription: event.richDescription,
           slug: event.slug,

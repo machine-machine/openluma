@@ -32,6 +32,12 @@ import {
 import { getEventBySlug } from "@/lib/events/get-event-by-slug";
 import { invitationEmailMatches } from "@/lib/events/invitations";
 import { canViewPrivateEvent } from "@/lib/events/visibility";
+import {
+  formatPrice,
+  isPaidEvent,
+  paymentLinks,
+  quotePrice,
+} from "@/lib/payments";
 import { redis } from "@/lib/redis";
 import { buildPageMetadata } from "@/lib/seo/metadata";
 import {
@@ -105,7 +111,13 @@ export default async function PublicEventBySlugPage({
   const [userRsvpResult, questions, invitationResult] = await Promise.all([
     session?.user
       ? db.query.rsvps.findFirst({
-          columns: { createdAt: true, status: true },
+          columns: {
+            createdAt: true,
+            paymentReference: true,
+            paymentStatus: true,
+            priceCents: true,
+            status: true,
+          },
           where: and(
             eq(rsvps.eventId, event.id),
             eq(rsvps.userId, session.user.id)
@@ -237,6 +249,34 @@ export default async function PublicEventBySlugPage({
       );
     }
   }
+
+  // Paid events: an unpaid booking holds its seat until the host decides.
+  const paid = isPaidEvent(event);
+  const holding = event.rsvps.filter(
+    (r) => r.status === "approved" || (paid && r.status === "pending")
+  );
+  const quote = quotePrice(
+    event,
+    holding.filter((r) => r.priceTier === "early_bird").length
+  );
+  const priceLabel = quote
+    ? formatPrice(quote.priceCents, event.currency)
+    : null;
+  const spotsLeft = event.capacity
+    ? Math.max(event.capacity - holding.length, 0)
+    : null;
+  const userPayment =
+    userRsvpResult?.status === "pending" &&
+    userRsvpResult.priceCents &&
+    userRsvpResult.paymentReference &&
+    userRsvpResult.paymentStatus !== "paid"
+      ? {
+          amount: formatPrice(userRsvpResult.priceCents, event.currency),
+          links: paymentLinks(userRsvpResult.priceCents, event.currency),
+          reference: userRsvpResult.paymentReference,
+          reported: userRsvpResult.paymentStatus === "reported",
+        }
+      : null;
 
   const approvedRsvps = event.rsvps.filter((r) => r.status === "approved");
   const approvedCount = approvedRsvps.length;
@@ -393,6 +433,7 @@ export default async function PublicEventBySlugPage({
                   <p className="font-medium">
                     {approvedCount} attending
                     {event.capacity ? ` / ${event.capacity} spots` : null}
+                    {spotsLeft !== null && paid ? ` · ${spotsLeft} left` : null}
                   </p>
                   {visibleAttendees.length > 0 && (
                     <div className="flex -space-x-2">
@@ -464,6 +505,18 @@ export default async function PublicEventBySlugPage({
                   currentRsvpStatus={currentRsvpStatus}
                   eventId={event.id}
                   eventSlug={slug}
+                  payment={userPayment}
+                  price={
+                    priceLabel && quote
+                      ? {
+                          label: priceLabel,
+                          note:
+                            quote.tier === "early_bird" && event.priceCents
+                              ? `Early bird · regular ${formatPrice(event.priceCents, event.currency)}`
+                              : null,
+                        }
+                      : null
+                  }
                   questions={questions}
                   requiresApproval={event.requiresApproval}
                   waitlistPosition={waitlistPosition}

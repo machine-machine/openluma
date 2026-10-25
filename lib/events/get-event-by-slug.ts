@@ -16,7 +16,7 @@ export const getEventBySlug = cache(async (slug: string) =>
       category: true,
       host: { columns: { id: true, image: true, name: true } },
       rsvps: {
-        columns: { id: true, status: true },
+        columns: { id: true, priceTier: true, status: true },
         with: { user: { columns: { id: true, image: true, name: true } } },
       },
       tags: true,

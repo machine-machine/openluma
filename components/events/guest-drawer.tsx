@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { formatPrice } from "@/lib/payments";
 
 interface TimelineEntry {
   changedByName: string | null;
@@ -46,11 +47,21 @@ interface Question {
   type: string;
 }
 
+export const PAYMENT_LABELS = {
+  paid: "Paid",
+  reported: "Guest says paid",
+  unpaid: "Awaiting payment",
+} as const;
+
 interface Attendee {
   createdAt: string;
   customAnswers: Record<string, string | boolean> | null;
   id: string;
   message: string | null;
+  paymentReference?: string | null;
+  paymentStatus?: "unpaid" | "reported" | "paid" | null;
+  priceCents?: number | null;
+  priceTier?: "early_bird" | "regular" | null;
   status: "pending" | "approved" | "rejected" | "waitlisted";
   timeline: TimelineEntry[];
   user: {
@@ -59,6 +70,47 @@ interface Attendee {
     email: string;
     image: string | null;
   };
+}
+
+function PaymentSummary({
+  attendee,
+}: {
+  attendee: Pick<
+    Attendee,
+    "paymentReference" | "paymentStatus" | "priceCents" | "priceTier"
+  >;
+}) {
+  if (!attendee.paymentStatus) {
+    return null;
+  }
+  const amount =
+    typeof attendee.priceCents === "number"
+      ? formatPrice(attendee.priceCents)
+      : "—";
+  const tier = attendee.priceTier === "early_bird" ? " · Early bird" : "";
+  const state = ` · ${PAYMENT_LABELS[attendee.paymentStatus]}`;
+  return (
+    <>
+      <div className="space-y-1">
+        <p className="text-muted-foreground text-xs">Payment</p>
+        <p className="font-medium text-sm">
+          {amount}
+          {tier}
+          {state}
+        </p>
+        {attendee.paymentReference ? (
+          <p className="font-mono text-muted-foreground text-xs">
+            Ref {attendee.paymentReference}
+          </p>
+        ) : null}
+      </div>
+      <Separator />
+    </>
+  );
+}
+
+function admitLabel(attendee: Pick<Attendee, "paymentStatus">) {
+  return attendee.paymentStatus ? "Payment received · Admit" : "Admit";
 }
 
 interface GuestDrawerProps {
@@ -241,6 +293,8 @@ export function GuestDrawer({
           </>
         ) : null}
 
+        <PaymentSummary attendee={attendee} />
+
         {/* Message */}
         {attendee.message ? (
           <>
@@ -261,6 +315,7 @@ export function GuestDrawer({
                 const isLast = idx === attendee.timeline.length - 1;
                 const entryDate = new Date(entry.createdAt);
                 const isRegistered = entry.type === "registered";
+                const isPaymentReported = entry.type === "payment_reported";
                 const Icon = isRegistered ? CheckSquare : UserCog;
 
                 return (
@@ -275,9 +330,11 @@ export function GuestDrawer({
 
                     {/* Content */}
                     <div className="min-w-0 pb-4">
-                      {isRegistered ? (
+                      {isRegistered || isPaymentReported ? (
                         <>
-                          <p className="font-medium text-sm">Registered</p>
+                          <p className="font-medium text-sm">
+                            {isRegistered ? "Registered" : "Guest says paid"}
+                          </p>
                           <p className="text-muted-foreground text-xs">
                             {format(entryDate, "MMM d 'at' h:mm a")}
                           </p>
@@ -380,7 +437,7 @@ export function GuestDrawer({
                     disabled={loading}
                     onClick={() => changeStatus("approved")}
                   >
-                    {loading ? "Updating..." : "Admit"}
+                    {loading ? "Updating..." : admitLabel(attendee)}
                   </Button>
                   <Button
                     className="flex-1"

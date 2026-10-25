@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { GuestDrawer } from "@/components/events/guest-drawer";
+import { GuestDrawer, PAYMENT_LABELS } from "@/components/events/guest-drawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,10 @@ interface Attendee {
   customAnswers: Record<string, string | boolean> | null;
   id: string;
   message: string | null;
+  paymentReference?: string | null;
+  paymentStatus?: "unpaid" | "reported" | "paid" | null;
+  priceCents?: number | null;
+  priceTier?: "early_bird" | "regular" | null;
   status: "pending" | "approved" | "rejected" | "waitlisted";
   timeline: TimelineEntry[];
   user: {
@@ -406,6 +410,14 @@ export function AttendeeList({
                   <p className="truncate font-medium text-sm">
                     {attendee.user.name}
                   </p>
+                  {attendee.paymentStatus ? (
+                    <p className="truncate text-muted-foreground text-xs">
+                      {PAYMENT_LABELS[attendee.paymentStatus]}
+                      {attendee.paymentReference
+                        ? ` · ${attendee.paymentReference}`
+                        : ""}
+                    </p>
+                  ) : null}
                 </div>
                 <span
                   className={`inline-flex flex-shrink-0 items-center rounded-full border px-2 py-0.5 font-medium text-[10px] ${statusBadgeClass(attendee.status)}`}
@@ -456,6 +468,14 @@ export function AttendeeList({
                       >
                         {STATUS_LABELS[attendee.status] ?? attendee.status}
                       </span>
+                      {attendee.paymentStatus ? (
+                        <span className="ml-2 text-muted-foreground text-xs">
+                          {PAYMENT_LABELS[attendee.paymentStatus]}
+                          {attendee.paymentReference
+                            ? ` · ${attendee.paymentReference}`
+                            : ""}
+                        </span>
+                      ) : null}
                     </TableCell>
                     <TableCell
                       className="text-right text-muted-foreground"

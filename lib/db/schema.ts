@@ -84,6 +84,14 @@ export const rsvpStatusEnum = pgEnum("rsvp_status", [
   "waitlisted",
 ]);
 
+// Paid events: guests pay outside the app (PayPal.me / Revolut.me) and the
+// host confirms the payment, which approves the RSVP.
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "unpaid",
+  "reported",
+  "paid",
+]);
+
 export const invitationStatusEnum = pgEnum("invitation_status", [
   "pending",
   "accepted",
@@ -126,7 +134,13 @@ export const events = pgTable(
     categoryId: text("category_id").references(() => categories.id),
     coverImage: text("cover_image"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
+    currency: text("currency").notNull().default("EUR"),
     description: text("description"),
+    // Early bird applies until earlyBirdEndsAt and/or earlyBirdSeats bookings
+    // have taken it, whichever comes first; null means no early bird.
+    earlyBirdEndsAt: timestamp("early_bird_ends_at"),
+    earlyBirdPriceCents: integer("early_bird_price_cents"),
+    earlyBirdSeats: integer("early_bird_seats"),
     endTime: timestamp("end_time"),
     hostId: text("host_id")
       .notNull()
@@ -136,6 +150,8 @@ export const events = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     location: text("location"),
     locationDetails: text("location_details"),
+    // Full ticket price in minor units; null means a free event.
+    priceCents: integer("price_cents"),
     reminderSent1h: boolean("reminder_sent_1h").notNull().default(false),
     reminderSent24h: boolean("reminder_sent_24h").notNull().default(false),
     requiresApproval: boolean("requires_approval").notNull().default(false),
@@ -201,6 +217,11 @@ export const rsvps = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     message: text("message"),
+    // Price owed, fixed when the guest registered (early bird or regular).
+    paymentReference: text("payment_reference"),
+    paymentStatus: paymentStatusEnum("payment_status"),
+    priceCents: integer("price_cents"),
+    priceTier: text("price_tier").$type<"early_bird" | "regular">(),
     status: rsvpStatusEnum("status").notNull().default("pending"),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     userId: text("user_id")

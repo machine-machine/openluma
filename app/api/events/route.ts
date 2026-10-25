@@ -117,6 +117,9 @@ export async function POST(request: NextRequest) {
     .insert(events)
     .values({
       ...eventData,
+      earlyBirdEndsAt: eventData.earlyBirdEndsAt
+        ? new Date(eventData.earlyBirdEndsAt)
+        : null,
       endTime: eventData.endTime ? new Date(eventData.endTime) : null,
       hostId: session.user.id,
       slug: generateEventSlug(eventData.title),
