@@ -212,18 +212,25 @@ export function RsvpButton({
   // Not logged in - show sign in prompt
   if (!isLoggedIn) {
     return (
-      <Button
-        className="w-full"
-        onClick={() =>
-          router.push(
-            `/sign-in?callbackUrl=${eventSlug ? `/e/${eventSlug}` : `/events/${eventId}`}`
-          )
-        }
-        size="lg"
-      >
-        <LogIn className="mr-2 h-4 w-4" />
-        Sign in to RSVP
-      </Button>
+      <>
+        <Button
+          className="w-full"
+          onClick={() =>
+            router.push(
+              `/sign-in?callbackUrl=${eventSlug ? `/e/${eventSlug}` : `/events/${eventId}`}`
+            )
+          }
+          size="lg"
+        >
+          <LogIn className="mr-2 h-4 w-4" />
+          {price ? `Sign in to reserve · ${price.label}` : "Sign in to RSVP"}
+        </Button>
+        {price?.note ? (
+          <p className="text-center text-muted-foreground text-xs">
+            {price.note}
+          </p>
+        ) : null}
+      </>
     );
   }
 
