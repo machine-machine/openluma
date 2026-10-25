@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { events, eventTags } from "@/lib/db/schema";
+import { canHostEvents } from "@/lib/hosts";
 import { generateEventSlug } from "@/lib/utils/slugify";
 
 export async function POST(
@@ -13,6 +14,10 @@ export async function POST(
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!canHostEvents(session.user)) {
+    return Response.json({ message: "Forbidden" }, { status: 403 });
   }
 
   const { eventId } = await params;

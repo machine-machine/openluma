@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import { LogoIcon } from "@/components/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -43,8 +43,16 @@ const settingsItems = [
   { icon: Settings, title: "Settings", url: "/dashboard/settings" },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ isHost }: { isHost: boolean }) {
   const pathname = usePathname();
+  // Guests only book; creating events and the AI assistant are organizer-only.
+  const hostOnly = new Set(["/dashboard/chat", "/dashboard/events/new"]);
+  const visibleOverview = overviewItems.filter(
+    (item) => isHost || !hostOnly.has(item.url)
+  );
+  const visibleEvents = eventItems.filter(
+    (item) => isHost || !hostOnly.has(item.url)
+  );
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -53,13 +61,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild size="lg">
               <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
-                  OL
-                </div>
+                <LogoIcon className="size-8" />
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">OpenLuma</span>
+                  <span className="truncate font-semibold">BookGrait</span>
                   <span className="truncate text-muted-foreground text-xs">
-                    Event Platform
+                    Workshops by grAIt
                   </span>
                 </div>
               </Link>
@@ -73,7 +79,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {overviewItems.map((item) => (
+              {visibleOverview.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -95,7 +101,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Events</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {eventItems.map((item) => (
+              {visibleEvents.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

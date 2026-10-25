@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { eventCohosts, events, rsvps } from "@/lib/db/schema";
+import { canHostEvents } from "@/lib/hosts";
 
 export default async function DashboardPage() {
   const session = await getSession(await headers());
@@ -142,12 +143,18 @@ export default async function DashboardPage() {
             {allUpcoming.length === 0 ? (
               <p className="text-muted-foreground text-sm">
                 No upcoming events.{" "}
-                <Link
-                  className="text-primary hover:underline"
-                  href="/dashboard/events/new"
-                >
-                  Create one
-                </Link>
+                {canHostEvents(session.user) ? (
+                  <Link
+                    className="text-primary hover:underline"
+                    href="/dashboard/events/new"
+                  >
+                    Create one
+                  </Link>
+                ) : (
+                  <Link className="text-primary hover:underline" href="/events">
+                    Browse workshops
+                  </Link>
+                )}
               </p>
             ) : (
               <div className="space-y-3">

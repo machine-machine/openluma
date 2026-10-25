@@ -8,6 +8,7 @@ import {
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { chatConversations, chatMessages } from "@/lib/db/schema";
+import { canHostEvents } from "@/lib/hosts";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { chatRatelimit } from "@/lib/redis";
 
@@ -59,6 +60,10 @@ export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  // The assistant creates and edits events, so it is organizer-only.
+  if (!canHostEvents(session.user)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
   }
   const userId = session.user.id;
 

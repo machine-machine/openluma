@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardHeader } from "@/components/layout/dashboard-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getSession } from "@/lib/auth";
+import { canHostEvents } from "@/lib/hosts";
 
 export const metadata: Metadata = {
   robots: { follow: false, index: false },
@@ -22,7 +23,7 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar isHost={canHostEvents(session.user)} />
       <SidebarInset>
         <DashboardHeader />
         <main className="flex-1 p-6">{children}</main>

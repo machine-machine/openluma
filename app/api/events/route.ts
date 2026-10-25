@@ -5,6 +5,7 @@ import { z } from "zod/v4";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { events, eventTags } from "@/lib/db/schema";
+import { canHostEvents } from "@/lib/hosts";
 import { generateEventSlug } from "@/lib/utils/slugify";
 import { createEventSchema } from "@/lib/validators/event";
 
@@ -99,6 +100,13 @@ export async function POST(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user) {
     return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!canHostEvents(session.user)) {
+    return Response.json(
+      { message: "Only the organizer can create events" },
+      { status: 403 }
+    );
   }
 
   const body = await request.json();

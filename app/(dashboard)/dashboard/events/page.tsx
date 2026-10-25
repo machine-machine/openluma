@@ -10,12 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { eventCohosts, events, rsvps } from "@/lib/db/schema";
+import { canHostEvents } from "@/lib/hosts";
 
 export default async function EventsPage() {
   const session = await getSession(await headers());
   if (!session?.user) {
     redirect("/sign-in");
   }
+  const isHost = canHostEvents(session.user);
 
   const now = new Date();
 
@@ -90,12 +92,14 @@ export default async function EventsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-bold text-3xl tracking-tight">Events</h1>
-        <Button asChild>
-          <Link href="/dashboard/events/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Event
-          </Link>
-        </Button>
+        {isHost ? (
+          <Button asChild>
+            <Link href="/dashboard/events/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Event
+            </Link>
+          </Button>
+        ) : null}
       </div>
 
       <Tabs defaultValue="upcoming">
@@ -130,13 +134,17 @@ export default async function EventsPage() {
           <EventTimeline
             emptyAction={
               <Button asChild className="mt-4">
-                <Link href="/dashboard/events/new">
+                <Link href={isHost ? "/dashboard/events/new" : "/events"}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Event
+                  {isHost ? "Create Event" : "Browse workshops"}
                 </Link>
               </Button>
             }
-            emptyDescription="Create your first event to get started."
+            emptyDescription={
+              isHost
+                ? "Create your first event to get started."
+                : "Book a workshop to see it here."
+            }
             emptyTitle="No upcoming events"
             events={upcomingEvents}
             href={(e) => `/dashboard/events/${e.id}`}
