@@ -73,16 +73,13 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Mariusz Kreft · grAIt
           </p>
           <p className="text-muted-foreground text-xs">
-            Built on{" "}
-            <a
-              className="underline"
-              href="https://github.com/Nishitbaria/openluma"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              OpenLuma
-            </a>{" "}
-            (MIT)
+            <a className="hover:underline" href="https://grait.io/privacy/">
+              Privacy Policy
+            </a>
+            {" · "}
+            <a className="hover:underline" href="https://grait.io/terms/">
+              Terms
+            </a>
           </p>
         </div>
       </div>

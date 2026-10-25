@@ -207,14 +207,14 @@ export default function SignInPage() {
           By continuing, you agree to our{" "}
           <a
             className="underline underline-offset-4 hover:text-primary"
-            href="#"
+            href="https://grait.io/terms/"
           >
             Terms of Service
           </a>{" "}
           and{" "}
           <a
             className="underline underline-offset-4 hover:text-primary"
-            href="#"
+            href="https://grait.io/privacy/"
           >
             Privacy Policy
           </a>
